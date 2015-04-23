@@ -54,25 +54,6 @@ int is_prime (long long num) {
     return 1;
 }
 
-/**
- * CLASSICAL ALGO 2: test for primes up to sqrt(n)
- *
- * Determines if number is prime or not.
- * Returns 1 if number is prime 
- * Returns 0 if number is not prime
- */
-int is_prime_2 (long long num) {
-    long long sqrtnum = sqrt(num);
-
-    for (long long i = 2; i < sqrtnum; i++) {
-        if (num % i == 0) /* found a divisor! */
-            return 0;
-    }
-
-    return 1;
-}
-
-
 
 /**
  * Loop for prime number generation
@@ -90,7 +71,7 @@ void gen_primes (long long max_number) {
             break;
 
         } else {
-            if (is_prime_2(current) == 1) {
+            if (is_prime(current) == 1) {
  //               printf ("prime found: %lld\n", current);
                 largest_prime = current;
             }
