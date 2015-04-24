@@ -40,6 +40,12 @@ long long read_file_data (const char *filename)
 
 /**
  * CLASSICAL ALGO 4: test for primality using Wilson's Theorem
+ * Findings:
+ * This algorithm caps out for uns long long at input of 20 because
+ * the factorial of that number will overflow at input of 21. Also,
+ * isolated performance tests show this algorithm to be slower than
+ * the algorithm defined in classical_3 which can support a much
+ * larger ceiling.
  *
  * Determines if number is prime or not.
  * Returns 1 if number is prime 
@@ -52,10 +58,11 @@ int is_prime (unsigned long long num) {
     unsigned long long sqrtnum = sqrt(num);
 
     /* accumulator to store factorial */
-    unsigned long long acc = 0;
+    unsigned long long acc = 1;
 
     for (unsigned long long i = 1; i < (num - 1); i++) {
         acc = i * acc;
+        printf("i: %lld, acc: %lld\n", i, acc);
     }
 
     if (acc % num == 0) return 0; /* found a divisor! */
