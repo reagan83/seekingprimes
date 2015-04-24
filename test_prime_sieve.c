@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <sys/stat.h>
 #include <math.h>
@@ -55,29 +56,39 @@ int is_prime (unsigned long long num) {
     if (num <= 1) return 0;
     if (num % 2 == 0) return 0; // found a divisor
 
-    unsigned long long perms[(num-1)/2];
-    unsigned long long j = 0;
+    unsigned long long *sieve;
 
+    unsigned long long idx = 0;
+
+    sieve = (unsigned long long *)malloc(sizeof(unsigned long long)* (num/2));
+
+    // populate list of nums
     for (unsigned long long i = 3; i < num; i+=2) {
-        perms[j] = i;
-        j++;
+        printf("added number to list. %lld\n", i);
+        sieve[idx] = i;
+        idx++;
+    }
+
+    printf("all added!\n");
+
+    // iterate through list removing items
+    for (unsigned long long i = 0; i < (sizeof(sieve) * (num/2)); i++) {
+        if (sieve[i] % num == 0) {
+            sieve[i] = 0;
+        }
     }
 
 
-
-    unsigned long long sqrtnum = sqrt(num);
-
-    /* accumulator to store factorial */
-    unsigned long long acc = 1;
-
-    for (unsigned long long i = 1; i < (num - 1); i++) {
-        acc = i * acc;
-        printf("i: %lld, acc: %lld\n", i, acc);
+    // iterate through list removing items
+    for (unsigned long long i = 0; i < (sizeof(sieve) * (num/2)); i++) {
+        if (sieve[i] != 0) {
+            free(sieve);
+            return 1; /* found a prime! */
+        }
     }
 
-    if (acc % num == 0) return 0; /* found a divisor! */
-
-    return 1;
+    free(sieve);
+    return 0;
 }
 
 
