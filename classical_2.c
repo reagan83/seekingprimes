@@ -27,7 +27,7 @@ long long read_file_data (const char *filename)
     fscanf (file, "%lld", &i);    
     while (!feof (file))
     {  
-        printf ("%lld", i);
+        printf ("Number ceiling: %lld\n", i);
         fscanf (file, "%lld", &i);      
     }
 
@@ -37,18 +37,18 @@ long long read_file_data (const char *filename)
 }
 
 
-
 /**
- * CLASSICAL ALGO 2: test for primes up to sqrt(n)
+ * CLASSICAL ALGO 2: test for primes excluding even numbers (except 2)
  *
  * Determines if number is prime or not.
  * Returns 1 if number is prime 
  * Returns 0 if number is not prime
  */
 int is_prime (long long num) {
-    long long sqrtnum = sqrt(num);
+    if (num <= 1) return 0;
+    if (num % 2 == 0) return 0; // found a divisor
 
-    for (long long i = 2; i < sqrtnum; i++) {
+    for (long long i = 3; i < num; i+=2) {
         if (num % i == 0) /* found a divisor! */
             return 0;
     }
@@ -104,7 +104,7 @@ int main (int argc, char *argv[]) {
 
             long long w;
             w = fsize(argv[1]);
-            printf("file size: %lld", w);
+            printf("Finding primes up to: %lld digits long.\n", (w - 1));
 
             if (w > LONG_LONG_MAX) {
                 printf("Unsupported input size!\n");

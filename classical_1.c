@@ -26,8 +26,8 @@ long long read_file_data (const char *filename)
 
     fscanf (file, "%lld", &i);    
     while (!feof (file))
-    {  
-        printf ("%lld", i);
+    {
+        printf ("Number ceiling: %lld\n", i);
         fscanf (file, "%lld", &i);      
     }
 
@@ -46,6 +46,8 @@ long long read_file_data (const char *filename)
  * Returns 0 if number is not prime
  */
 int is_prime (long long num) {
+    if (num <= 1) return 0;
+
     for (long long i = 2; i < num; i++) {
         if (num % i == 0) /* found a divisor! */
             return 0;
@@ -102,7 +104,7 @@ int main (int argc, char *argv[]) {
 
             long long w;
             w = fsize(argv[1]);
-            printf("file size: %lld", w);
+            printf("Finding primes up to: %lld digits long.\n", (w - 1));
 
             if (w > LONG_LONG_MAX) {
                 printf("Unsupported input size!\n");
