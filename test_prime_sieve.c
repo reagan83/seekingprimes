@@ -37,16 +37,11 @@ long long read_file_data (const char *filename)
     return i;
 }
 
-
-
 /**
  * CLASSICAL ALGO 5: test for primality using Sieve of Eratosthenes
  * Findings:
- * This algorithm caps out for uns long long at input of 20 because
- * the factorial of that number will overflow at input of 21. Also,
- * isolated performance tests show this algorithm to be slower than
- * the algorithm defined in classical_3 which can support a much
- * larger ceiling.
+ * This is not ideal to be ran against a range of numbers (over and over)
+ * It would be better just to find a prime of a max number.
  *
  * Determines if number is prime or not.
  * Returns 1 if number is prime 
@@ -101,6 +96,14 @@ void gen_primes (long long max_number) {
 
     long long largest_prime = 3;
 
+/*
+ * It doesn't make sense for us to loop through numbers to find
+ * all primes. Rather, we will take an input number and find the largest
+ * prime within it using the Sieve of Eratosthenes.
+*/
+
+/*
+
     while (1) {
         if (current > find_to_max) {
             printf("finished!\n");
@@ -115,6 +118,22 @@ void gen_primes (long long max_number) {
         }
 
         current = current + 1;
+    }
+*/
+
+    while (1) {
+        if (current > find_to_max) {
+            printf("finished!\n");
+            printf("largest prime: %lld\n", largest_prime);
+            break;
+        } else {
+            if (is_prime(current) == 1) {
+                largest_prime = current;
+            }
+        }
+
+        current = current + 1;
+
     }
 }
 
