@@ -65,10 +65,12 @@ void gen_primes (long long max_number) {
     long long find_to_max = max_number - 1;
 
     long long largest_prime = 3;
+    long long primes_found = 0;
 
     while (1) {
         if (current > find_to_max) {
             printf("finished!\n");
+            printf("prime numbers found: %lld\n", primes_found);
             printf("largest prime: %lld\n", largest_prime);
             break;
 
@@ -76,6 +78,7 @@ void gen_primes (long long max_number) {
             if (is_prime(current) == 1) {
  //               printf ("prime found: %lld\n", current);
                 largest_prime = current;
+                primes_found++;
             }
         }
 

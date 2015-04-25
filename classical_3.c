@@ -64,15 +64,17 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (long long max_number) {
-    long long current = 3;
-    long long find_to_max = max_number - 1;
+void gen_primes (unsigned long long max_number) {
+    unsigned long long current = 3;
+    unsigned long long find_to_max = max_number - 1;
 
-    long long largest_prime = 3;
+    unsigned long long largest_prime = 3;
+    unsigned long long primes_found = 0;
 
     while (1) {
         if (current > find_to_max) {
             printf("finished!\n");
+            printf("prime numbers found: %lld\n", primes_found);
             printf("largest prime: %lld\n", largest_prime);
             break;
 
@@ -80,6 +82,7 @@ void gen_primes (long long max_number) {
             if (is_prime(current) == 1) {
  //               printf ("prime found: %lld\n", current);
                 largest_prime = current;
+                primes_found++;
             }
         }
 

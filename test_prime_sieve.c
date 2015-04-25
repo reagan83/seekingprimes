@@ -47,12 +47,11 @@ long long read_file_data (const char *filename)
  * Returns 1 if number is prime 
  * Returns 0 if number is not prime
  */
-int is_prime (unsigned long long num) {
+unsigned long long is_prime (unsigned long long num) {
     if (num <= 1) return 0;
     if (num % 2 == 0) return 0; // found a divisor
 
     unsigned long long *sieve;
-
     unsigned long long idx = 0;
 
     sieve = (unsigned long long *)malloc(sizeof(unsigned long long)* (num/2));
@@ -77,8 +76,9 @@ int is_prime (unsigned long long num) {
     // iterate through list removing items
     for (unsigned long long i = 0; i < (sizeof(sieve) * (num/2)); i++) {
         if (sieve[i] != 0) {
+            unsigned long long temp = sieve[i];
             free(sieve);
-            return 1; /* found a prime! */
+            return temp; /* found a prime! */
         }
     }
 
@@ -90,50 +90,33 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (long long max_number) {
-    long long current = 3;
-    long long find_to_max = max_number - 1;
-
-    long long largest_prime = 3;
+void gen_primes (unsigned long long max_number) {
+    unsigned long long current = (max_number - 1);
 
 /*
  * It doesn't make sense for us to loop through numbers to find
- * all primes. Rather, we will take an input number and find the largest
+ * all primes as done in other algo implementations.
+ * Rather, we will take an input number and find the largest
  * prime within it using the Sieve of Eratosthenes.
 */
 
-/*
+    printf("finding largest prime using sieve\n");
 
     while (1) {
-        if (current > find_to_max) {
+        if (current < 1) {
+            /* should never reach this case as 1 is a prime number */
             printf("finished!\n");
-            printf("largest prime: %lld\n", largest_prime);
-            break;
-
-        } else {
-            if (is_prime(current) == 1) {
- //               printf ("prime found: %lld\n", current);
-                largest_prime = current;
-            }
-        }
-
-        current = current + 1;
-    }
-*/
-
-    while (1) {
-        if (current > find_to_max) {
-            printf("finished!\n");
-            printf("largest prime: %lld\n", largest_prime);
+            printf("No prime number found.\n");
             break;
         } else {
             if (is_prime(current) == 1) {
-                largest_prime = current;
+                printf("finished!\n");
+                printf("largest prime: %lld\n", current);
+                break;
             }
         }
 
-        current = current + 1;
-
+        current--;
     }
 }
 
