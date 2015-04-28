@@ -44,7 +44,7 @@ long long read_file_data (const char *filename)
  * It would be better just to find a prime of a max number.
  *
  * Determines if number is prime or not.
- * Returns 1 if number is prime 
+ * Returns max(prime number) if prime is found 
  * Returns 0 if number is not prime
  */
 unsigned long long is_prime (unsigned long long num) {
