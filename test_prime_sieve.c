@@ -63,11 +63,13 @@ unsigned long long is_prime (unsigned long long num) {
         idx++;
     }
 
-    printf("all added!\n");
-
     // iterate through list removing items
-    for (unsigned long long i = 0; i < (sizeof(sieve) * (num/2)); i++) {
+    for (unsigned long long i = 0; i < idx; i++) {
+        if (sieve[i] == 0) continue;
+
+        printf("working on %lld\n", sieve[i]);
         if (sieve[i] % num == 0) {
+            printf("removing %lld from list\n", sieve[i]);
             sieve[i] = 0;
         }
     }
