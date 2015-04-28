@@ -49,7 +49,6 @@ long long read_file_data (const char *filename)
  */
 unsigned long long is_prime (unsigned long long num) {
     if (num <= 1) return 0;
-    if (num % 2 == 0) return 0; // found a divisor
 
     unsigned long long *sieve;
     unsigned long long idx = 0;
@@ -57,7 +56,7 @@ unsigned long long is_prime (unsigned long long num) {
     sieve = (unsigned long long *)malloc(sizeof(unsigned long long)* (num/2));
 
     // populate list of nums
-    for (unsigned long long i = 3; i < num; i+=2) {
+    for (unsigned long long i = 3; i <= num; i+=2) {
         printf("added number to list. %lld\n", i);
         sieve[idx] = i;
         idx++;
@@ -65,27 +64,31 @@ unsigned long long is_prime (unsigned long long num) {
 
     // iterate through list removing items
     for (unsigned long long i = 0; i < idx; i++) {
-        if (sieve[i] == 0) continue;
-
+        if (sieve[i] == 0) continue; // ignore item
         printf("working on %lld\n", sieve[i]);
-        if (sieve[i] % num == 0) {
-            printf("removing %lld from list\n", sieve[i]);
-            sieve[i] = 0;
+
+        for (unsigned long long j = (i+1); j < idx; j++) {
+            if (sieve[j] == 0) continue; // ignore item
+            printf("inner working on %lld\n", sieve[j]);
+
+            if (sieve[j] % sieve[i] == 0) {
+                printf("removing %lld from list\n", sieve[j]);
+                sieve[j] = 0;
+            }
         }
     }
 
-
+    unsigned long long temp = 0;
     // iterate through list removing items
-    for (unsigned long long i = 0; i < (sizeof(sieve) * (num/2)); i++) {
+    for (unsigned long long i = idx; i > 3; i--) {
         if (sieve[i] != 0) {
-            unsigned long long temp = sieve[i];
-            free(sieve);
-            return temp; /* found a prime! */
+            temp = sieve[i]; // found a prime!
+            break;
         }
     }
 
     free(sieve);
-    return 0;
+    return temp;
 }
 
 
@@ -104,22 +107,9 @@ void gen_primes (unsigned long long max_number) {
 
     printf("finding largest prime using sieve\n");
 
-    while (1) {
-        if (current < 1) {
-            /* should never reach this case as 1 is a prime number */
-            printf("finished!\n");
-            printf("No prime number found.\n");
-            break;
-        } else {
-            if (is_prime(current) == 1) {
-                printf("finished!\n");
-                printf("largest prime: %lld\n", current);
-                break;
-            }
-        }
+    printf("finished!\n");
+    printf("largest prime: %lld\n", is_prime(current));
 
-        current--;
-    }
 }
 
 
