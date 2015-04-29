@@ -57,36 +57,41 @@ unsigned long long is_prime (unsigned long long num) {
     sieve = (unsigned long long *)malloc(sizeof(unsigned long long)* (num/2));
 
     // populate list of nums
-    for (unsigned long long i = 3; i <= num; i+=2) {
-//        printf("added number to list. %lld\n", i);
+    for (unsigned long long i = 1; i <= (num); i+=2) {
+        printf("added number to list. %lld\n", i);
         sieve[idx] = i;
         size++;
         idx++;
     }
+    printf("sieve size: %lld\n", size);
 
     // iterate through list removing items
     for (unsigned long long i = 0; i < idx; i++) {
-        if (sieve[i] == 0) continue; // ignore item
-//        printf("working on %lld\n", sieve[i]);
+        if (sieve[i] < 2) continue; // ignore item
+
+        printf("working on %lld\n", sieve[i]);
 
         for (unsigned long long j = (i+1); j < idx; j++) {
             if (sieve[j] == 0) continue; // ignore item
-//            printf("inner working on %lld\n", sieve[j]);
+            printf("inner working on %lld\n", sieve[j]);
 
             if (sieve[j] % sieve[i] == 0) {
-//                printf("removing %lld from list\n", sieve[j]);
+                printf("removing %lld from list\n", sieve[j]);
                 sieve[j] = 0;
                 size--;
             }
         }
 
-//        printf("sieve size: %lld\n", size);
+        printf("sieve size: %lld\n", size);
     }
 
     unsigned long long temp = 0;
     // iterate through list removing items
-    for (unsigned long long i = idx; i > 3; i--) {
+    for (unsigned long long i = (idx - 1); i > 0; i--) {
         if (sieve[i] != 0) {
+            printf("i: %lld\n", i);
+
+            printf("found a prime!: %lld\n", sieve[i]);
             temp = sieve[i]; // found a prime!
             break;
         }
