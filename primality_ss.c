@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <limits.h>
 #include <sys/stat.h>
 #include <math.h>
@@ -27,15 +29,28 @@ off_t fsize (const char *filename) {
 /**
  * Read file
  */
-mpz_t read_file_data (const char *filename)
+char *read_file_data (const char *filename)
 {
     FILE *file = fopen(filename, "r");
-    mpz_t i;
+    long size;
+    char *buff;
 
-    mpz_init(i);
-    mpz_inp_str(i, file, 10);
+    // find out total length of file contents
+    fseek(file, 0L, SEEK_END);
+    size = ftell(file);
+    rewind(file);
 
-    return i;
+    char *buffer = malloc(size + 1);
+    if (!buffer) { // if memory was unable to allocate
+        fclose(file);
+        return NULL;
+    }
+
+    // read file in to buffer
+    fread(buffer, size, 1, file);
+    fclose(file);
+
+    return buffer;
 }
 
 
@@ -48,32 +63,50 @@ mpz_t read_file_data (const char *filename)
  * Returns 0 if number is not prime
  */
 
+unsigned long long power(unsigned long long base, unsigned long long pow) {
+    unsigned long long i = 0;
+
+    while (i <= pow) {
+        base = base * pow;
+        i++;
+    }
+
+    return base;
+}
+
+
+
 int is_prime (unsigned long long num) {
     if (num <= 1) return 0;
     if (num % 2 == 0) return 0; // found a divisor
 
     unsigned long long k = 99999; // accuracy of the test
 
+    // loop through k times to determine accuracy of test
+    // if equal, number is possibly prime
+    srand(time(NULL));
+    int r = 0;
 
     for (unsigned long long i = 0; i < k; i++) {
-        
+        r = rand() % num;
+
+        // loop until random number beteween 2 - (n - 1) is reached
+        while (1) {
+            if (r >= 2) break;
+            if (r % 2 != 0) break; // keep searching for odd numbers only
+            r = rand() % num;
+        }
+
+        int jacobi = mpz_jacobi(r, num);
+
+        r = power(r, (num - 1)/2);
+        if ((r % num) != ((r/num) % num)) { // either prime of Eular liar
+            printf("composite found: %lld %lld\n", i, num);
+            return 0;
+        }
     }
 
-
-
-
-    unsigned long long sqrtnum = sqrt(num);
-
-    /* accumulator to store factorial */
-    unsigned long long acc = 1;
-
-    for (unsigned long long i = 1; i < (num - 1); i++) {
-        acc = i * acc;
-        printf("i: %lld, acc: %lld\n", i, acc);
-    }
-
-    if (acc % num == 0) return 0; /* found a divisor! */
-
+    // possibly prime
     return 1;
 }
 
@@ -81,25 +114,23 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (unsigned long long max_number) {
-    unsigned long long current = 3;
-    unsigned long long find_to_max = max_number - 1;
+void gen_primes (mpz_t max_number) {
 
-    unsigned long long largest_prime = 3;
+
+    mpz_t current;
+
     unsigned long long primes_found;
 
     while (1) {
-        if (current > find_to_max) {
-            printf("finished!\n");
-            printf("prime numbers found: %lld\n", primes_found);
-            printf("largest prime: %lld\n", largest_prime);
-            break;
-
-        } else {
+        if (mpz_cmp(current, max_number) < 0)
             if (is_prime(current) == 1) {
                 printf ("prime found: %lld\n", current);
                 primes_found++;
             }
+        } else {
+            printf("finished!\n");
+            printf("prime numbers found: %lld\n", primes_found);
+            break;
         }
 
         current = current + 1;
@@ -127,14 +158,17 @@ int main (int argc, char *argv[]) {
 
             unsigned long long w;
             w = fsize(argv[1]);
-            printf("Finding primes up to: %Zd digits long.\n", (w - 1));
+            printf("Finding primes up to: %lld digits long.\n", (w - 1));
 
             if (w > LONG_LONG_MAX) {
                 printf("Unsupported input size!\n");
             } else {
-                mpz_init_set_str(max_number, read_file_data(argv[1]), 10);
-                gen_primes(max_number);
-                mpz_clear(max_number);
+
+                mpz_t number;
+
+                mpz_init_set_str(number, read_file_data(argv[1]), 10);
+                gen_primes(number);
+                mpz_clear(number);
             }
 
         }
