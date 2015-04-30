@@ -54,6 +54,15 @@ char *read_file_data (const char *filename)
 }
 
 
+
+/**
+ * NONDETERMINISTIC: Solovay-Strassen primality
+ *
+ * Determines if number is prime or not.
+ * Returns 1 if number is prime 
+ * Returns 0 if number is not prime
+ */
+
 unsigned long long power(unsigned long long base, unsigned long long pow) {
     unsigned long long i = 0;
 
@@ -66,69 +75,61 @@ unsigned long long power(unsigned long long base, unsigned long long pow) {
 }
 
 
-/**
- * NONDETERMINISTIC: Solovay-Strassen primality
- *
- * Determines if number is prime or not.
- * Returns 1 if number is prime 
- * Returns 0 if number is not prime
- */
-
- /*
-
-mpz_t calc_legendre(mpz_t a, mpz_t p) {
-    if (mpz_cmp(a, 0) || mpz_cmp(a, 1)) {
-        return 0;
-    }
-
-    mpz_t r;
-
-    // 
-    if (mpz_cmp(mpz_mod(r, a, 2), 0)) {
-
-        mpz_t d;
-        // divide a/2, set value to d
-        mpz_divexact(d, a, 2);
-
-        r = calc_legendre(d, p);
-    }
-
-    if (mpz_)
-}
-
-*/
 
 int is_prime (mpz_t num) {
-    if (num <= 1) return 0;
-    if (num % 2 == 0) return 0; // found a divisor
+    mpz_t temp;
+    mpz_init(temp);
 
-    unsigned long long k = 99999; // accuracy of the test
+    mpz_set_ui(temp, 1);
+    if (mpz_cmp(num, temp) <= 0) return 0;
 
-    // loop through k times to determine accuracy of test
-    // if equal, number is possibly prime
-    srand(time(NULL));
-    int r = 0;
+    mpz_t r;
+    mpz_init(r);
 
-    for (unsigned long long i = 0; i < k; i++) {
-        r = rand() % num;
+    mpz_set_ui(temp, 2);
+    mpz_mod(r, num, temp);
 
-        // loop until random number beteween 2 - (n - 1) is reached
-        while (1) {
-            if (r >= 2) break;
-            if (r % 2 != 0) break; // keep searching for odd numbers only
-            r = rand() % num;
-        }
+    mpz_set_ui(temp, 0);
+    if (mpz_cmp(r, temp) == 0) return 0; // found a divisor
 
-        int jacobi = mpz_jacobi(r, num);
+    mpz_t rop;
+    mpz_init(rop);
 
-        r = power(r, (num - 1)/2);
-        if ((r % num) != (jacobi % num)) { // either prime of Eular liar
-            printf("composite found: %lld %lld\n", i, num);
+    mpz_t counter;
+    mpz_init(counter);
+
+    mpz_set_ui(counter, 1);
+
+    mpz_set_ui(temp, 1);
+
+    while (1) {
+        if (mpz_cmp(counter, num) >= 0) break;
+        gmp_printf ("0/ num: %Zd\n", num);
+
+        mpz_sub(rop, num, temp);
+        gmp_printf ("1/ rop number: %Zd\n", rop);
+
+        mpz_powm(rop, rop, counter, r);
+        gmp_printf ("2/ rop number: %Zd\n", rop);
+
+        mpz_mod(r, rop, num);
+        gmp_printf ("3/ mod number: %Zd\n", r);
+
+        // if mod is not equal to 1 (value of temp) then composite
+        if (mpz_cmp(r, temp) == 0) {
+            gmp_printf ("prime number: %Zd\n", num);
+            return 1;
+        } else {            
+            gmp_printf ("composite number: %Zd\n", num);
             return 0;
         }
+
+        mpz_add(counter, counter, temp);
     }
 
     // possibly prime
+    printf("possible prime\n");
+
     return 1;
 }
 
@@ -138,17 +139,22 @@ int is_prime (mpz_t num) {
  */
 void gen_primes (mpz_t max_number) {
     mpz_t current;
+    mpz_init(current);
+
+    mpz_t temp;
+    mpz_init(temp);
+    mpz_set_ui(temp, 1);
     unsigned long long primes_found;
 
-    current = 0;
-
-    while (current < max_number) {
+    while (1) {
         if (is_prime(current) == 1) {
-            printf ("possible prime found: %lld\n", current);
+            gmp_printf ("prime found: %Zd\n", current);
             primes_found++;
         }
 
-        current = current + 1;
+        mpz_add(current, current, temp);
+
+        if (mpz_cmp(current, max_number) > 0) break;
     }
 
     printf("finished!\n");
