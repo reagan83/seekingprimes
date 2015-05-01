@@ -8,4 +8,4 @@ all:
 	gcc -g -Wall -o prime_fermat prime_fermat.c -lgmp
 	
 clean:
-	$(RM) classical_1 classical_2
+	$(RM) prime_classical_1 prime_classical_2 prime_classical_3 prime_wilson prime_sieve prime_fermat

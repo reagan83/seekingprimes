@@ -171,21 +171,17 @@ int main (int argc, char *argv[]) {
             printf("Unable to open file.\n");
         } else {
 
+            // determine number length
             unsigned long long w;
             w = fsize(argv[1]);
             printf("Finding primes up to: %lld digits long.\n", (w - 1));
 
-            if (w > LONG_LONG_MAX) {
-                printf("Unsupported input size!\n");
-            } else {
+            // support REALLY LARGE numbers
+            mpz_t number;
 
-                mpz_t number;
-
-                mpz_init_set_str(number, read_file_data(argv[1]), 10);
-                gen_primes(number);
-                mpz_clear(number);
-            }
-
+            mpz_init_set_str(number, read_file_data(argv[1]), 10);
+            gen_primes(number);
+            mpz_clear(number);
         }
 
     }

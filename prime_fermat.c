@@ -72,6 +72,14 @@ char *read_file_data (const char *filename)
  */
 
 int is_prime (mpz_t num) {
+
+    // create max fermat tests variable & init to 18
+    mpz_t max_fermat_tests;
+    mpz_init(max_fermat_tests);
+    mpz_set_ui(max_fermat_tests, 18);
+
+
+    // create temp variable
     mpz_t temp;
     mpz_init(temp);
 
@@ -98,24 +106,41 @@ int is_prime (mpz_t num) {
     mpz_t rop2;
     mpz_init(rop2);
 
+
+
     mpz_set_ui(counter, 2);
+
 
     mpz_set_ui(temp, 1);
 
-//    gmp_printf ("0/ num: %Zd\n", num);
-    mpz_sub(rop, num, temp);
-//    gmp_printf ("1/ rop number (n - 1): %Zd\n", rop);
+    mpz_t num_minus_one;
+    mpz_init(num_minus_one);
+    mpz_sub(num_minus_one, num, temp);
+
+    // initialize random state for use in fermat's algo
+    gmp_randstate_t rstate;
+    gmp_randinit_default(rstate);
+    gmp_randseed(rstate, num);
 
     while (1) {
-        if (mpz_cmp(counter, rop) >= 0) break;
-        mpz_powm(rop2, counter, rop, num);
- //       gmp_printf ("2/ counter: %Zd, rop mod: %Zd\n", counter, rop2);
+        // loop until max tests has satisfied
+        if (mpz_cmp(counter, max_fermat_tests) >= 0) break;
+
+
+        // generate random number and store in 'rop'
+        mpz_urandomm(rop, rstate, num);
+        mpz_add(rop, rop, temp); // make sure we add +1 to this number in case 0 is selected.
+
+        gmp_printf ("-- random number: %Zd\n", rop);
+
+        mpz_powm(rop2, rop, num_minus_one, num);
+        gmp_printf ("2/ counter: %Zd, rop2 mod: %Zd\n", counter, rop2);
 
         // if mod is not equal to 1 (which is the value of temp) then composite
         // this is a confusing conditional because mzp_cmp returns 0 when strings are equal
         // and the value of 'temp' is 1. So it basically checks if r = 1
         if (mpz_cmp(rop2, temp) != 0) {
-//            gmp_printf ("composite number: %Zd\n", num);
+            gmp_printf ("==== composite number: %Zd\n", num);
             return 0;
         }
 
@@ -127,7 +152,7 @@ int is_prime (mpz_t num) {
 
 
 /**
- * Loop for prime number generation
+ * Loop for prime number finding: starting at 1->max_number
  */
 void gen_primes (mpz_t max_number, int debug) {
     mpz_t current;
@@ -136,12 +161,13 @@ void gen_primes (mpz_t max_number, int debug) {
     mpz_t temp;
     mpz_init(temp);
     mpz_set_ui(temp, 1);
+
     unsigned long long primes_found = 0;
 
     while (1) {
         if (is_prime(current) == 1) {
             if (debug)
-                gmp_printf ("prime found: %Zd\n", current);
+                gmp_printf ("possible prime found: %Zd\n", current);
             primes_found++;
         }
 
@@ -153,7 +179,7 @@ void gen_primes (mpz_t max_number, int debug) {
     mpz_clear(current);
 
     printf("finished!\n");
-    printf("prime numbers found: %lld\n", primes_found);
+    printf("possible primes found: %lld\n", primes_found);
 }
 
 
@@ -174,26 +200,22 @@ int main (int argc, char *argv[]) {
             printf("Unable to open file.\n");
         } else {
 
+            // determine number length
             unsigned long long w;
             w = fsize(argv[1]);
             printf("Finding primes up to: %lld digits long.\n", (w - 1));
 
-            if (w > LONG_LONG_MAX) {
-                printf("Unsupported input size!\n");
-            } else {
+            // support REALLY LARGE numbers
+            mpz_t number;
+            mpz_init_set_str(number, read_file_data(argv[1]), 10);
 
-                mpz_t number;
+            int debug = 0;
+            // if input is small enough, setup to print output for debugging                
+            if (w < 7)
+                debug = 1;
 
-                mpz_init_set_str(number, read_file_data(argv[1]), 10);
-
-                int debug = 0;
-                // if input is small enough, setup to print output for debugging                
-                if (w < 5)
-                    debug = 1;
-                
-                gen_primes(number, debug);
-                mpz_clear(number);
-            }
+            gen_primes(number, debug);
+            mpz_clear(number);
 
         }
 
