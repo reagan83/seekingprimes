@@ -78,73 +78,78 @@ int is_prime (mpz_t num) {
     mpz_init(max_fermat_tests);
     mpz_set_ui(max_fermat_tests, 18);
 
+    // create zero variable
+    mpz_t zero;
+    mpz_init(zero);
+    mpz_set_ui(zero, 0);
 
-    // create temp variable
-    mpz_t temp;
-    mpz_init(temp);
+    // create one variable
+    mpz_t one;
+    mpz_init(one);
+    mpz_set_ui(one, 1);
 
-    mpz_set_ui(temp, 1);
-    if (mpz_cmp(num, temp) <= 0) return 0;
+    // create one variable
+    mpz_t two;
+    mpz_init(two);
+    mpz_set_ui(two, 2);
 
-    mpz_t r;
-    mpz_init(r);
+    // if number is less than or equal to 1, exit
+    if (mpz_cmp(num, one) <= 0) return 0;
 
-    mpz_set_ui(temp, 2);
-    if (mpz_cmp(num, temp) == 0) return 1; // number is 2 and prime
+    // if number is 2, then is prime, exit
+    if (mpz_cmp(num, two) == 0) return 1; // number is 2 and prime
 
-    mpz_mod(r, num, temp);
-
-    mpz_set_ui(temp, 0);
-    if (mpz_cmp(r, temp) == 0) return 0; // found a divisor
-
+    // if number is num % 2 = 0, then exit
     mpz_t rop;
     mpz_init(rop);
+    mpz_mod(rop, num, two);
 
-    mpz_t counter;
-    mpz_init(counter);
+    if (mpz_cmp(rop, zero) == 0) return 0; // found a divisor
 
-    mpz_t rop2;
-    mpz_init(rop2);
-
-
-
-    mpz_set_ui(counter, 2);
-
-
-    mpz_set_ui(temp, 1);
-
+    // setup num - 1 variable
     mpz_t num_minus_one;
     mpz_init(num_minus_one);
-    mpz_sub(num_minus_one, num, temp);
+    mpz_sub(num_minus_one, num, one);
 
     // initialize random state for use in fermat's algo
     gmp_randstate_t rstate;
     gmp_randinit_default(rstate);
     gmp_randseed(rstate, num);
 
+    // setup counter variable
+    mpz_t counter;
+    mpz_init(counter);
+    mpz_set_ui(counter, 2);
+
+    // store loop state values in rop2
+    mpz_t rop2;
+    mpz_init(rop2);
+
+
     while (1) {
         // loop until max tests has satisfied
         if (mpz_cmp(counter, max_fermat_tests) >= 0) break;
 
-
         // generate random number and store in 'rop'
         mpz_urandomm(rop, rstate, num);
-        mpz_add(rop, rop, temp); // make sure we add +1 to this number in case 0 is selected.
 
-        gmp_printf ("-- random number: %Zd\n", rop);
+        if (mpz_cmp(rop, zero) == 0)
+            mpz_add(rop, rop, one); // make sure we add +1 to this number in case 0 is selected.
+
+//        gmp_printf ("-- random number: %Zd\n", rop);
 
         mpz_powm(rop2, rop, num_minus_one, num);
-        gmp_printf ("2/ counter: %Zd, rop2 mod: %Zd\n", counter, rop2);
+//        gmp_printf ("2/ counter: %Zd, rop2 mod: %Zd\n", counter, rop2);
 
-        // if mod is not equal to 1 (which is the value of temp) then composite
+        // if mod is not equal to 1 (which is the value of one) then composite
         // this is a confusing conditional because mzp_cmp returns 0 when strings are equal
         // and the value of 'temp' is 1. So it basically checks if r = 1
-        if (mpz_cmp(rop2, temp) != 0) {
-            gmp_printf ("==== composite number: %Zd\n", num);
+        if (mpz_cmp(rop2, one) != 0) {
+//            gmp_printf ("==== composite number: %Zd\n", num);
             return 0;
         }
 
-        mpz_add(counter, counter, temp);
+        mpz_add(counter, counter, one);
     }
 
     return 1;
