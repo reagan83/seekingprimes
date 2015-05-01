@@ -113,13 +113,17 @@ int miller_rabin_tests(mpz_t a, mpz_t num) {
     mpz_powm(aPower, a, odd_num, num);
 
     // if a^power is 1 then number is prime 
-    if (mpz_cmp_ui(aPower, 1) == 0)
+    if (mpz_cmp_ui(aPower, 1) == 0) {
+        gmp_printf("!prime found: %Zd\n", num);
         return 1; // prime found!
+    }
 
     // loop through iter times to see if we can determine if num is a probable prime
     for (unsigned long long i = 0; i < (iters - 1); i++) {
-        if (mpz_cmp(aPower, num_minus_one) == 0)
+        if (mpz_cmp(aPower, num_minus_one) == 0) {
+            gmp_printf("!prime found: %Zd\n", num);
             return 1; // prime found!
+        }
 
 //      gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
         mpz_powm(aPower, aPower, two, num);
@@ -127,10 +131,13 @@ int miller_rabin_tests(mpz_t a, mpz_t num) {
 
     if (mpz_cmp(aPower, num_minus_one) == 0) {
         gmp_printf("!prime found: %Zd\n", num);
-        return 1; // number is composite
+        return 1; // number is a possible prime
     }
 
-    // possible prime!
+
+    gmp_printf ("composite: num: %Zd, apower: %Zd\n", num, aPower);
+
+    // composite!
     return 0;
 }
 
