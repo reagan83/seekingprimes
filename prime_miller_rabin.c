@@ -63,20 +63,24 @@ char *read_file_data (const char *filename)
  */
 
 
-int miller_rabin_test(mpz_t a, mpz_t n) {
+int miller_rabin_tests(mpz_t a, mpz_t num) {
 
 
-// GREAT WAYS TO IMPROVE READABILITY!
-// mpz_init_set(d, n_minus_one);
-// mpz_sub_ui(n_minus_one, n, 1);
+// FEEDBACK TO IMPROVE READABILITY!
+// mpz_init_set(d, num_minus_one);
+// mpz_sub_ui(num_minus_one, n, 1);
 
-// mpz_cmp_ui(a_to_power, 1)
+// mpz_cmp_ui(aPower, 1)
 
     // create one variable
     mpz_t one;
     mpz_init(one);
     mpz_set_ui(one, 1);
 
+    // create two variable
+    mpz_t two;
+    mpz_init(two);
+    mpz_set_ui(two, 2);
 
     // setup num - 1 variable
     mpz_t num_minus_one;
@@ -84,53 +88,50 @@ int miller_rabin_test(mpz_t a, mpz_t n) {
     mpz_sub(num_minus_one, num, one);
 
 
-
     // find odd number within n
-    unsigned long long s = 0;
+    unsigned long long iters = 0;
     mpz_t odd_num;
     mpz_init(odd_num);
     mpz_set(odd_num, num_minus_one);
 
-    while (1) {
-        mpz_mod(rop, odd_num, two);
+    mpz_t divresults;
+    mpz_init(divresults);
 
-        if (mpz_cmp(rop, zero) == 0)
+    while (1) {
+        iters++;
+        mpz_mod(divresults, odd_num, two);
+
+        if (mpz_cmp_ui(divresults, 0) == 0)
             mpz_fdiv_q_2exp(odd_num, odd_num, 1);
         else
             break;
-
-        s++;
     }
 
+    // store the a^power mod n result
+    mpz_t aPower;
+    mpz_init(aPower);
+    mpz_powm(aPower, a, odd_num, num);
 
-//        gmp_printf ("-- random number: %Zd\n", rop);
+    // if a^power is 1 then number is prime 
+    if (mpz_cmp_ui(aPower, 1) == 0)
+        return 1; // prime found!
 
-        // left side of SS test
-        mpz_divexact(exponent, num_minus_one, two);
-        mpz_powm(resultsleft, rop, exponent, num);
-//        gmp_printf ("2/ left: %Zd\n", exponent, resultsleft);
+    // loop through iter times to see if we can determine if num is a probable prime
+    for (unsigned long long i = 0; i < (iters - 1); i++) {
+        if (mpz_cmp(aPower, num_minus_one) == 0)
+            return 1; // prime found!
 
-        // right side of SS test
-        int jacobi = mpz_jacobi(rop, num);
-        if (jacobi == 0) {
-//            gmp_printf ("composite found: (zero jacobi) %Zd\n", num);
-            return 0;
-        }
+//      gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
+        mpz_powm(aPower, aPower, two, num);
+    }
 
-        mpz_set_ui(j, jacobi);
-
-        mpz_mod(resultsright, resultsright, num);
-//        gmp_printf ("3/ right: %Zd\n", resultsright);
-
-        // if left != right, then number is a composite!
-        if (mpz_cmp(resultsleft, resultsright) == 0) {
-//            gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
-            return 0;
-        }
-
+    if (mpz_cmp(aPower, num_minus_one) == 0) {
+        gmp_printf("!prime found: %Zd\n", num);
+        return 1; // number is composite
+    }
 
     // possible prime!
-    return 1;
+    return 0;
 }
 
 
@@ -173,6 +174,11 @@ int is_prime (mpz_t num) {
     mpz_init(counter);
     mpz_set_ui(counter, 2);
 
+    // initialize random state for use in fermat's algo
+    gmp_randstate_t rstate;
+    gmp_randinit_default(rstate);
+    gmp_randseed(rstate, num);
+
 
     // loop through k times to determine accuracy of test
     // if equal, number is possibly prime
@@ -184,9 +190,12 @@ int is_prime (mpz_t num) {
         // generate random number and store in 'rop'
         mpz_urandomm(rop, rstate, num);
 
-        if (miller_rabin_test(rop, num) == 0)
+        if (miller_rabin_tests(rop, num) == 0) {
+            gmp_printf("composite found: %Zd\n", num);
             return 0; // composite number found
+        }
 
+        gmp_printf("possible prime: %Zd\n", num);
         // number could be a prime! keep looping for accuracy
         mpz_add(counter, counter, one);
 
