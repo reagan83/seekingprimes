@@ -55,7 +55,7 @@ char *read_file_data (const char *filename)
 
 
 /**
- * NONDETERMINISTIC: Solovay-Strassen primality
+ * NONDETERMINISTIC: Miller-Rabin primality test
  *
  * Determines if number is prime or not.
  * Returns 1 if number is prime 
@@ -173,6 +173,7 @@ int is_prime (mpz_t num) {
         // loop iterations larger than num
         if (mpz_cmp(counter, num) > 0) break;
     }
+
 
     // possibly prime
     return 1;
