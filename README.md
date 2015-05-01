@@ -5,6 +5,7 @@ primality of a number.
 
 ## Pre-requisites ##
 1) Your system will need to be equipped with 'gcc'
+
 2) This project relies on the GMP library for processing large numbers. You
 will need to download this library and install it on your system.
 
@@ -37,6 +38,7 @@ If you are interested in timing the performance of these algorithms, use the
 `time` command and compare.  For example:
 
 time ./prime_classical_1 input_3_tiny
+
 time ./prime_classical_3 input_3_tiny
 
 Should produce drastically different timing results. Try it!
