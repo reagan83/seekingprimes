@@ -28,7 +28,9 @@ should contain a max number for finding primes up to.
 Here are some sample commands to try the algorithms:
 
 ./prime_classical_1 input_1_base
+
 ./prime_classical_3 input_3_base
+
 ./prime_wilson input_2_wilson
 
 If you are interested in timing the performance of these algorithms, use the
