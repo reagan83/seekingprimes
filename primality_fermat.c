@@ -1,3 +1,9 @@
+/**** compile command
+
+gcc primality_fermat.c -o primality_fermat -v -lgmp
+
+******/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -5,6 +11,8 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <gmp.h>
+
+
 
 struct bignum_cs51 {
     unsigned long long large;
@@ -56,25 +64,13 @@ char *read_file_data (const char *filename)
 
 
 /**
- * NONDETERMINISTIC: Solovay-Strassen primality
+ * NONDETERMINISTIC: Fermat's Little Theorem for determining primality
+ * Built to support very large numbers
  *
  * Determines if number is prime or not.
  * Returns 1 if number is prime 
  * Returns 0 if number is not prime
  */
-
-unsigned long long power(unsigned long long base, unsigned long long pow) {
-    unsigned long long i = 0;
-
-    while (i <= pow) {
-        base = base * pow;
-        i++;
-    }
-
-    return base;
-}
-
-
 
 int is_prime (mpz_t num) {
     mpz_t temp;
@@ -98,37 +94,32 @@ int is_prime (mpz_t num) {
     mpz_t counter;
     mpz_init(counter);
 
-    mpz_set_ui(counter, 1);
+    mpz_t rop2;
+    mpz_init(rop2);
+
+    mpz_set_ui(counter, 2);
 
     mpz_set_ui(temp, 1);
 
+//    gmp_printf ("0/ num: %Zd\n", num);
+    mpz_sub(rop, num, temp);
+//    gmp_printf ("1/ rop number (n - 1): %Zd\n", rop);
+
     while (1) {
-        if (mpz_cmp(counter, num) >= 0) break;
-        gmp_printf ("0/ num: %Zd\n", num);
+        if (mpz_cmp(counter, rop) >= 0) break;
+        mpz_powm(rop2, counter, rop, num);
+ //       gmp_printf ("2/ counter: %Zd, rop mod: %Zd\n", counter, rop2);
 
-        mpz_sub(rop, num, temp);
-        gmp_printf ("1/ rop number: %Zd\n", rop);
-
-        mpz_powm(rop, rop, counter, r);
-        gmp_printf ("2/ rop number: %Zd\n", rop);
-
-        mpz_mod(r, rop, num);
-        gmp_printf ("3/ mod number: %Zd\n", r);
-
-        // if mod is not equal to 1 (value of temp) then composite
-        if (mpz_cmp(r, temp) == 0) {
-            gmp_printf ("prime number: %Zd\n", num);
-            return 1;
-        } else {            
-            gmp_printf ("composite number: %Zd\n", num);
+        // if mod is not equal to 1 (which is the value of temp) then composite
+        // this is a confusing conditional because mzp_cmp returns 0 when strings are equal
+        // and the value of 'temp' is 1. So it basically checks if r = 1
+        if (mpz_cmp(rop2, temp) != 0) {
+//            gmp_printf ("composite number: %Zd\n", num);
             return 0;
         }
 
         mpz_add(counter, counter, temp);
     }
-
-    // possibly prime
-    printf("possible prime\n");
 
     return 1;
 }
@@ -144,11 +135,11 @@ void gen_primes (mpz_t max_number) {
     mpz_t temp;
     mpz_init(temp);
     mpz_set_ui(temp, 1);
-    unsigned long long primes_found;
+    unsigned long long primes_found = 0;
 
     while (1) {
         if (is_prime(current) == 1) {
-            gmp_printf ("prime found: %Zd\n", current);
+//            gmp_printf ("prime found: %Zd\n", current);
             primes_found++;
         }
 
@@ -156,6 +147,8 @@ void gen_primes (mpz_t max_number) {
 
         if (mpz_cmp(current, max_number) > 0) break;
     }
+
+    mpz_clear(current);
 
     printf("finished!\n");
     printf("prime numbers found: %lld\n", primes_found);

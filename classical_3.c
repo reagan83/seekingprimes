@@ -48,11 +48,16 @@ long long read_file_data (const char *filename)
  */
 int is_prime (unsigned long long num) {
     if (num <= 1) return 0;
+    if (num == 2) return 1;
     if (num % 2 == 0) return 0; // found a divisor
 
-    unsigned long long sqrtnum = sqrt(num);
+    unsigned long long sqrtnum = sqrt(num) + 1;
+
+    if (sqrtnum < 3)
+        sqrtnum = num;
 
     for (unsigned long long i = 3; i < sqrtnum; i+=2) {
+//        printf("num: %llu, i: %llu, mod: %llu\n", num, i, num % i);
         if (num % i == 0) /* found a divisor! */
             return 0;
     }
@@ -65,10 +70,10 @@ int is_prime (unsigned long long num) {
  * Loop for prime number generation
  */
 void gen_primes (unsigned long long max_number) {
-    unsigned long long current = 3;
+    unsigned long long current = 1;
     unsigned long long find_to_max = max_number - 1;
 
-    unsigned long long largest_prime = 3;
+    unsigned long long largest_prime = 1;
     unsigned long long primes_found = 0;
 
     while (1) {
@@ -80,7 +85,7 @@ void gen_primes (unsigned long long max_number) {
 
         } else {
             if (is_prime(current) == 1) {
- //               printf ("prime found: %lld\n", current);
+                printf ("prime found: %lld\n", current);
                 largest_prime = current;
                 primes_found++;
             }
