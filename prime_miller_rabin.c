@@ -62,11 +62,83 @@ char *read_file_data (const char *filename)
  * Returns 0 if number is not prime
  */
 
+
+int miller_rabin_test(mpz_t a, mpz_t n) {
+
+
+// GREAT WAYS TO IMPROVE READABILITY!
+// mpz_init_set(d, n_minus_one);
+// mpz_sub_ui(n_minus_one, n, 1);
+
+// mpz_cmp_ui(a_to_power, 1)
+
+    // create one variable
+    mpz_t one;
+    mpz_init(one);
+    mpz_set_ui(one, 1);
+
+
+    // setup num - 1 variable
+    mpz_t num_minus_one;
+    mpz_init(num_minus_one);
+    mpz_sub(num_minus_one, num, one);
+
+
+
+    // find odd number within n
+    unsigned long long s = 0;
+    mpz_t odd_num;
+    mpz_init(odd_num);
+    mpz_set(odd_num, num_minus_one);
+
+    while (1) {
+        mpz_mod(rop, odd_num, two);
+
+        if (mpz_cmp(rop, zero) == 0)
+            mpz_fdiv_q_2exp(odd_num, odd_num, 1);
+        else
+            break;
+
+        s++;
+    }
+
+
+//        gmp_printf ("-- random number: %Zd\n", rop);
+
+        // left side of SS test
+        mpz_divexact(exponent, num_minus_one, two);
+        mpz_powm(resultsleft, rop, exponent, num);
+//        gmp_printf ("2/ left: %Zd\n", exponent, resultsleft);
+
+        // right side of SS test
+        int jacobi = mpz_jacobi(rop, num);
+        if (jacobi == 0) {
+//            gmp_printf ("composite found: (zero jacobi) %Zd\n", num);
+            return 0;
+        }
+
+        mpz_set_ui(j, jacobi);
+
+        mpz_mod(resultsright, resultsright, num);
+//        gmp_printf ("3/ right: %Zd\n", resultsright);
+
+        // if left != right, then number is a composite!
+        if (mpz_cmp(resultsleft, resultsright) == 0) {
+//            gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
+            return 0;
+        }
+
+
+    // possible prime!
+    return 1;
+}
+
+
 int is_prime (mpz_t num) {
     // create max fermat tests variable & init to 18
-    mpz_t max_ss_tests;
-    mpz_init(max_ss_tests);
-    mpz_set_ui(max_ss_tests, 999);
+    mpz_t max_mr_tests;
+    mpz_init(max_mr_tests);
+    mpz_set_ui(max_mr_tests, 999);
 
     // create zero variable
     mpz_t zero;
@@ -96,76 +168,24 @@ int is_prime (mpz_t num) {
 
     if (mpz_cmp(rop, zero) == 0) return 0; // found a divisor
 
-    // setup num - 1 variable
-    mpz_t num_minus_one;
-    mpz_init(num_minus_one);
-    mpz_sub(num_minus_one, num, one);
-
-    // initialize random state for use in fermat's algo
-    gmp_randstate_t rstate;
-    gmp_randinit_default(rstate);
-    gmp_randseed(rstate, num);
-
     // setup counter variable
     mpz_t counter;
     mpz_init(counter);
     mpz_set_ui(counter, 2);
 
-    // setup stateful loop exponent variable
-    mpz_t exponent;
-    mpz_init(exponent);
-    mpz_set_ui(exponent, 0);
-
-    // setup stateful loop results variable: resultsleft
-    mpz_t resultsleft;
-    mpz_init(resultsleft);
-
-    // setup stateful loop results variable: resultsright
-    mpz_t resultsright;
-    mpz_init(resultsright);
-
-    // setup stateful loop results for jacobi
-    mpz_t j;
-    mpz_init(j);
 
     // loop through k times to determine accuracy of test
     // if equal, number is possibly prime
 //    gmp_printf ("=========================: num: %Zd\n", num);
     while (1) {
         // loop until max tests has satisfied
-        if (mpz_cmp(counter, max_ss_tests) >= 0) break;
+        if (mpz_cmp(counter, max_mr_tests) >= 0) break;
 
         // generate random number and store in 'rop'
-        mpz_urandomm(rop, rstate, num_minus_one);
-        if (mpz_cmp(rop, zero) == 0)
-            mpz_add(rop, rop, two); // make sure we add +1 to this number in case 0 is selected.
-        if (mpz_cmp(rop, one) == 0)
-            mpz_add(rop, rop, one); // make sure we add +1 to this number in case 0 is selected.
+        mpz_urandomm(rop, rstate, num);
 
-//        gmp_printf ("-- random number: %Zd\n", rop);
-
-        // left side of SS test
-        mpz_divexact(exponent, num_minus_one, two);
-        mpz_powm(resultsleft, rop, exponent, num);
-//        gmp_printf ("2/ left: %Zd\n", exponent, resultsleft);
-
-        // right side of SS test
-        int jacobi = mpz_jacobi(rop, num);
-        if (jacobi == 0) {
-//            gmp_printf ("composite found: (zero jacobi) %Zd\n", num);
-            return 0;
-        }
-
-        mpz_set_ui(j, jacobi);
-
-        mpz_mod(resultsright, resultsright, num);
-//        gmp_printf ("3/ right: %Zd\n", resultsright);
-
-        // if left != right, then number is a composite!
-        if (mpz_cmp(resultsleft, resultsright) == 0) {
-//            gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
-            return 0;
-        }
+        if (miller_rabin_test(rop, num) == 0)
+            return 0; // composite number found
 
         // number could be a prime! keep looping for accuracy
         mpz_add(counter, counter, one);
