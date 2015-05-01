@@ -13,14 +13,6 @@ gcc primality_fermat.c -o primality_fermat -v -lgmp
 #include <gmp.h>
 
 
-
-struct bignum_cs51 {
-    unsigned long long large;
-    mpz_t massive;
-};
-
-typedef struct bignum_cs51 bignum;
-
 /**
  * Return file size
  */
@@ -32,7 +24,6 @@ off_t fsize (const char *filename) {
 
     return -1; 
 }
-
 
 /**
  * Read file
@@ -129,23 +120,22 @@ int is_prime (mpz_t num) {
     while (1) {
         // loop until max tests has satisfied
         if (mpz_cmp(counter, max_fermat_tests) >= 0) break;
+        printf("in test\n");
 
         // generate random number and store in 'rop'
         mpz_urandomm(rop, rstate, num);
 
         if (mpz_cmp(rop, zero) == 0)
-            mpz_add(rop, rop, one); // make sure we add +1 to this number in case 0 is selected.
-
-//        gmp_printf ("-- random number: %Zd\n", rop);
+            mpz_add(rop, rop, one); // add +1 to this number in case 0 is selected.
 
         mpz_powm(rop2, rop, num_minus_one, num);
-//        gmp_printf ("2/ counter: %Zd, rop2 mod: %Zd\n", counter, rop2);
 
-        // if mod is not equal to 1 (which is the value of one) then composite
-        // this is a confusing conditional because mzp_cmp returns 0 when strings are equal
-        // and the value of 'temp' is 1. So it basically checks if r = 1
+        // if mod is not equal to 1 then composite
+        // this is a confusing conditional because mzp_cmp returns 0
+        // when strings are equal
+        // t basically checks if r = 1
         if (mpz_cmp(rop2, one) != 0) {
-//            gmp_printf ("==== composite number: %Zd\n", num);
+            gmp_printf ("==== composite number: %Zd\n", num);
             return 0;
         }
 
@@ -159,10 +149,16 @@ int is_prime (mpz_t num) {
 /**
  * Loop for prime number finding: starting at 1->max_number
  */
-void gen_primes (mpz_t max_number, int debug) {
+void gen_primes (mpz_t max_number, int debug, int check_only) {
+
+    // check max number only, or all numbers up to max_number?
     mpz_t current;
     mpz_init(current);
-    mpz_set_ui(current, 1);
+
+    if (check_only == 1) // only check max number for primality
+        mpz_set(current, max_number);
+    else
+        mpz_set_ui(current, 1);
 
     mpz_t one;
     mpz_init(one);
@@ -172,7 +168,7 @@ void gen_primes (mpz_t max_number, int debug) {
 
     while (1) {
         if (is_prime(current) == 1) {
-            if (debug)
+            if (debug || check_only)
                 gmp_printf ("possible prime found: %Zd\n", current);
             primes_found++;
         }
@@ -194,13 +190,18 @@ void gen_primes (mpz_t max_number, int debug) {
  */
 int main (int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("Usage: %s max_number\n.", argv[0]);
-        printf("Supports numbers up to: %lld\n", LONG_LONG_MAX);
+    if (argc != 3) {
+        printf("Usage: %s max_number_file check_only\n", argv[0]);
+        printf("  max_number_file is a file only with a number in it.\n");
+        printf("  check_only expects a 0 or 1. \n");
+        printf("    > 0 checks all numbers up to max_number_file for primality.\n");
+        printf("    > 1 checks only number in max_number_file for primality.\n");
+        printf("Supports numbers up to ALMOST INFINITE!\n");
 
         return -1;
     } else {
         FILE *fd = fopen (argv[1], "r");
+        int check_only = atoi(argv[2]);
 
         if (fd == 0) {
             printf("Unable to open file.\n");
@@ -220,7 +221,7 @@ int main (int argc, char *argv[]) {
             if (w < 5)
                 debug = 1;
 
-            gen_primes(number, debug);
+            gen_primes(number, debug, check_only);
             mpz_clear(number);
 
         }

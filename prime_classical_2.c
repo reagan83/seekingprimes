@@ -2,6 +2,8 @@
 #include <limits.h>
 #include <sys/stat.h>
 #include <math.h>
+#include <stdlib.h>
+
 
 /**
  * Return file size
@@ -61,15 +63,19 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (unsigned long long max_number, int debug) {
-    unsigned long long current = 1;
-    unsigned long long find_to_max = max_number - 1;
-
+void gen_primes (unsigned long long max_number, int debug, int check_only) {
     unsigned long long largest_prime = 1;
     unsigned long long primes_found = 0;
 
+    unsigned long long current;
+    // check max number only, or all numbers up to max_number?
+    if (check_only == 1) // only check max number for primality
+        current = max_number;
+    else
+        current = 1; // loop up to max_number
+
     while (1) {
-        if (current > find_to_max) {
+        if (current > max_number) {
             printf("finished!\n");
             printf("prime numbers found: %lld\n", primes_found);
             printf("largest prime: %lld\n", largest_prime);
@@ -95,13 +101,18 @@ void gen_primes (unsigned long long max_number, int debug) {
  */
 int main (int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("Usage: %s max_number\n.", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s max_number_file check_only\n", argv[0]);
+        printf("  max_number_file is a file only with a number in it.\n");
+        printf("  check_only expects a 0 or 1. \n");
+        printf("    > 0 checks all numbers up to max_number_file for primality.\n");
+        printf("    > 1 checks only number in max_number_file for primality.\n");
         printf("Supports numbers up to: %lld\n", LONG_LONG_MAX);
 
         return -1;
     } else {
         FILE *fd = fopen (argv[1], "r");
+        int check_only = atoi(argv[2]);
 
         if (fd == 0) {
             printf("Unable to open file.\n");
@@ -122,7 +133,7 @@ int main (int argc, char *argv[]) {
                 if (w < 5)
                     debug = 1;
 
-                gen_primes(max_number, debug);
+                gen_primes(max_number, debug, check_only);
             }
 
         }

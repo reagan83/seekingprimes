@@ -58,37 +58,31 @@ unsigned long long is_prime (unsigned long long num, int debug) {
 
     // populate list of nums
     for (unsigned long long i = 1; i <= (num); i+=2) {
-//        printf("added number to list. %lld\n", i);
         sieve[idx] = i;
         size++;
         idx++;
     }
-//    printf("sieve size: %lld\n", size);
 
     // iterate through list removing items
-    for (unsigned long long i = 0; i < idx; i++) {
+    for (unsigned long long i = 0; i < (idx - 1); i++) {
         if (sieve[i] < 2) continue; // ignore item
 
-//        printf("working on %lld\n", sieve[i]);
 
         for (unsigned long long j = (i+1); j < idx; j++) {
             if (sieve[j] == 0) continue; // ignore item
 
             if (sieve[j] % sieve[i] == 0) {
-//                printf("removing %lld from list\n", sieve[j]);
                 sieve[j] = 0;
                 size--;
             }
         }
 
-//        printf("sieve size: %lld\n", size);
     }
 
     unsigned long long temp = 0;
     // iterate through list removing items
-    for (unsigned long long i = (idx - 1); i > 0; i--) {
+    for (unsigned long long i = (idx + 1); i > 0; i--) {
         if (sieve[i] != 0) {
-//            printf("i: %lld\n", i);
 
             if (debug)
                 printf("found a prime!: %lld\n", sieve[i]);
@@ -106,9 +100,7 @@ unsigned long long is_prime (unsigned long long num, int debug) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (unsigned long long max_number, int debug) {
-    unsigned long long current = (max_number - 1);
-
+void gen_primes (unsigned long long max_number, int debug, int check_only) {
 /*
  * It doesn't make sense for us to loop through numbers to find
  * all primes as done in other algo implementations.
@@ -117,7 +109,20 @@ void gen_primes (unsigned long long max_number, int debug) {
 */
 
     printf("finding largest prime using sieve\n");
-    printf("largest prime: %lld\n", is_prime(current, debug));
+
+    unsigned long long largest_prime = 0;
+
+    largest_prime = is_prime(max_number, debug);
+
+    if (check_only == 1) {
+        if (largest_prime == max_number)
+            printf("%lld is prime\n", max_number);
+        else
+            printf("%lld is NOT prime\n", max_number);        
+    } else {
+        printf("largest prime found: %lld\n", largest_prime);
+    }
+
 
 }
 
@@ -127,13 +132,18 @@ void gen_primes (unsigned long long max_number, int debug) {
  */
 int main (int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("Usage: %s max_number\n.", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s max_number_file check_only\n", argv[0]);
+        printf("  max_number_file is a file only with a number in it.\n");
+        printf("  check_only expects a 0 or 1. \n");
+        printf("    > 0 checks all numbers up to max_number_file for primality.\n");
+        printf("    > 1 checks only number in max_number_file for primality.\n");
         printf("Supports numbers up to: %lld\n", LONG_LONG_MAX);
 
         return -1;
     } else {
         FILE *fd = fopen (argv[1], "r");
+        int check_only = atoi(argv[2]);
 
         if (fd == 0) {
             printf("Unable to open file.\n");
@@ -154,7 +164,7 @@ int main (int argc, char *argv[]) {
                 if (w < 5)
                     debug = 1;
 
-                gen_primes(max_number, debug);
+                gen_primes(max_number, debug, check_only);
             }
 
         }

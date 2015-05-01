@@ -63,7 +63,7 @@ char *read_file_data (const char *filename)
  */
 
 
-int miller_rabin_tests(mpz_t a, mpz_t num) {
+int miller_rabin_tests(mpz_t a, mpz_t num, int debug) {
 
 
 // FEEDBACK TO IMPROVE READABILITY!
@@ -114,14 +114,16 @@ int miller_rabin_tests(mpz_t a, mpz_t num) {
 
     // if a^power is 1 then number is prime 
     if (mpz_cmp_ui(aPower, 1) == 0) {
-        gmp_printf("!prime found: %Zd\n", num);
+        if (debug)
+            gmp_printf("!prime found: %Zd\n", num);
         return 1; // prime found!
     }
 
     // loop through iter times to see if we can determine if num is a probable prime
     for (unsigned long long i = 0; i < (iters - 1); i++) {
         if (mpz_cmp(aPower, num_minus_one) == 0) {
-            gmp_printf("!prime found: %Zd\n", num);
+            if (debug)
+                gmp_printf("!prime found: %Zd\n", num);
             return 1; // prime found!
         }
 
@@ -130,23 +132,25 @@ int miller_rabin_tests(mpz_t a, mpz_t num) {
     }
 
     if (mpz_cmp(aPower, num_minus_one) == 0) {
-        gmp_printf("!prime found: %Zd\n", num);
+        if (debug)
+            gmp_printf("!prime found: %Zd\n", num);
         return 1; // number is a possible prime
     }
 
 
-    gmp_printf ("composite: num: %Zd, apower: %Zd\n", num, aPower);
+    if (debug)
+        gmp_printf ("composite: num: %Zd, apower: %Zd\n", num, aPower);
 
     // composite!
     return 0;
 }
 
 
-int is_prime (mpz_t num) {
+int is_prime (mpz_t num, int debug) {
     // create max fermat tests variable & init to 18
     mpz_t max_mr_tests;
     mpz_init(max_mr_tests);
-    mpz_set_ui(max_mr_tests, 999);
+    mpz_set_ui(max_mr_tests, 30);
 
     // create zero variable
     mpz_t zero;
@@ -197,12 +201,14 @@ int is_prime (mpz_t num) {
         // generate random number and store in 'rop'
         mpz_urandomm(rop, rstate, num);
 
-        if (miller_rabin_tests(rop, num) == 0) {
-            gmp_printf("composite found: %Zd\n", num);
+        if (miller_rabin_tests(rop, num, debug) == 0) {
+            if (debug)
+                gmp_printf("composite found: %Zd\n", num);
             return 0; // composite number found
         }
 
-        gmp_printf("possible prime: %Zd\n", num);
+        if (debug)
+            gmp_printf("possible prime: %Zd\n", num);
         // number could be a prime! keep looping for accuracy
         mpz_add(counter, counter, one);
 
@@ -219,10 +225,15 @@ int is_prime (mpz_t num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (mpz_t max_number) {
+void gen_primes (mpz_t max_number, int debug, int check_only) {
     mpz_t current;
     mpz_init(current);
-    mpz_set_ui(current, 1);
+
+    // check max number only, or all numbers up to max_number?
+    if (check_only == 1)
+        mpz_set(current, max_number);
+    else
+        mpz_set_ui(current, 1);
 
     mpz_t one;
     mpz_init(one);
@@ -231,8 +242,9 @@ void gen_primes (mpz_t max_number) {
     unsigned long long primes_found = 0;
 
     while (1) {
-        if (is_prime(current) == 1) {
-            gmp_printf ("possible prime found: %Zd\n", current);
+        if (is_prime(current, debug) == 1) {
+            if (debug || check_only)
+                gmp_printf ("possible prime found: %Zd\n", current);
             primes_found++;
         }
 
@@ -250,13 +262,18 @@ void gen_primes (mpz_t max_number) {
  * Main program
  */
 int main (int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s max_number\n.", argv[0]);
+    if (argc != 3) {
+        printf("Usage: %s max_number_file check_only\n", argv[0]);
+        printf("  max_number_file is a file only with a number in it.\n");
+        printf("  check_only expects a 0 or 1. \n");
+        printf("    > 0 checks all numbers up to max_number_file for primality.\n");
+        printf("    > 1 checks only number in max_number_file for primality.\n");
         printf("Supports numbers up to: %lld\n", LONG_LONG_MAX);
 
         return -1;
     } else {
         FILE *fd = fopen (argv[1], "r");
+        int check_only = atoi(argv[2]);
 
         if (fd == 0) {
             printf("Unable to open file.\n");
@@ -271,7 +288,13 @@ int main (int argc, char *argv[]) {
             mpz_t number;
 
             mpz_init_set_str(number, read_file_data(argv[1]), 10);
-            gen_primes(number);
+
+            int debug = 0;
+            // if input is small enough, setup to print output for debugging                
+            if (w < 3)
+                debug = 1;
+
+            gen_primes(number, debug, check_only);
             mpz_clear(number);
         }
 
