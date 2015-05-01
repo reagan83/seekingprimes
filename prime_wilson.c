@@ -53,16 +53,15 @@ long long read_file_data (const char *filename)
  */
 int is_prime (unsigned long long num) {
     if (num <= 1) return 0;
+    if (num == 2) return 1;
     if (num % 2 == 0) return 0; // found a divisor
-
-    unsigned long long sqrtnum = sqrt(num);
 
     /* accumulator to store factorial */
     unsigned long long acc = 1;
 
     for (unsigned long long i = 1; i < (num - 1); i++) {
         acc = i * acc;
-        printf("i: %lld, acc: %lld\n", i, acc);
+//        printf("i: %lld, acc: %lld\n", i, acc);
     }
 
     if (acc % num == 0) return 0; /* found a divisor! */
@@ -74,12 +73,12 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (unsigned long long max_number) {
-    unsigned long long current = 3;
+void gen_primes (unsigned long long max_number, int debug) {
+    unsigned long long current = 1;
     unsigned long long find_to_max = max_number - 1;
 
-    unsigned long long largest_prime = 3;
-    unsigned long long primes_found;
+    unsigned long long largest_prime = 1;
+    unsigned long long primes_found = 0;
 
     while (1) {
         if (current > find_to_max) {
@@ -90,7 +89,8 @@ void gen_primes (unsigned long long max_number) {
 
         } else {
             if (is_prime(current) == 1) {
- //               printf ("prime found: %lld\n", current);
+                if (debug)
+                    printf ("prime found: %lld\n", current);
                 largest_prime = current;
                 primes_found++;
             }
@@ -105,7 +105,6 @@ void gen_primes (unsigned long long max_number) {
  * Main program
  */
 int main (int argc, char *argv[]) {
-    char input[19];
 
     if (argc != 2) {
         printf("Usage: %s max_number\n.", argv[0]);
@@ -128,7 +127,13 @@ int main (int argc, char *argv[]) {
             } else {
                 long long max_number;
                 max_number = read_file_data(argv[1]);
-                gen_primes(max_number);
+
+                int debug = 0;
+                // if input is small enough, setup to print output for debugging                
+                if (w < 5)
+                    debug = 1;
+
+                gen_primes(max_number, debug);
             }
 
         }

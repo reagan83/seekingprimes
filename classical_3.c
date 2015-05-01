@@ -69,7 +69,7 @@ int is_prime (unsigned long long num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (unsigned long long max_number) {
+void gen_primes (unsigned long long max_number, int debug) {
     unsigned long long current = 1;
     unsigned long long find_to_max = max_number - 1;
 
@@ -85,7 +85,10 @@ void gen_primes (unsigned long long max_number) {
 
         } else {
             if (is_prime(current) == 1) {
-                printf ("prime found: %lld\n", current);
+
+                if (debug)
+                    printf ("prime found: %lld\n", current);
+
                 largest_prime = current;
                 primes_found++;
             }
@@ -100,7 +103,6 @@ void gen_primes (unsigned long long max_number) {
  * Main program
  */
 int main (int argc, char *argv[]) {
-    char input[19];
 
     if (argc != 2) {
         printf("Usage: %s max_number\n.", argv[0]);
@@ -123,7 +125,13 @@ int main (int argc, char *argv[]) {
             } else {
                 long long max_number;
                 max_number = read_file_data(argv[1]);
-                gen_primes(max_number);
+
+                int debug = 0;
+                // if input is small enough, setup to print output for debugging                
+                if (w < 5)
+                    debug = 1;
+
+                gen_primes(max_number, debug);
             }
 
         }
