@@ -41,7 +41,6 @@ char *read_file_data (const char *filename)
 {
     FILE *file = fopen(filename, "r");
     long size;
-    char *buff;
 
     // find out total length of file contents
     fseek(file, 0L, SEEK_END);
@@ -83,6 +82,8 @@ int is_prime (mpz_t num) {
     mpz_init(r);
 
     mpz_set_ui(temp, 2);
+    if (mpz_cmp(num, temp) == 0) return 1; // number is 2 and prime
+
     mpz_mod(r, num, temp);
 
     mpz_set_ui(temp, 0);
@@ -128,7 +129,7 @@ int is_prime (mpz_t num) {
 /**
  * Loop for prime number generation
  */
-void gen_primes (mpz_t max_number) {
+void gen_primes (mpz_t max_number, int debug) {
     mpz_t current;
     mpz_init(current);
 
@@ -139,7 +140,8 @@ void gen_primes (mpz_t max_number) {
 
     while (1) {
         if (is_prime(current) == 1) {
-//            gmp_printf ("prime found: %Zd\n", current);
+            if (debug)
+                gmp_printf ("prime found: %Zd\n", current);
             primes_found++;
         }
 
@@ -159,7 +161,6 @@ void gen_primes (mpz_t max_number) {
  * Main program
  */
 int main (int argc, char *argv[]) {
-    char input[19];
 
     if (argc != 2) {
         printf("Usage: %s max_number\n.", argv[0]);
@@ -184,7 +185,13 @@ int main (int argc, char *argv[]) {
                 mpz_t number;
 
                 mpz_init_set_str(number, read_file_data(argv[1]), 10);
-                gen_primes(number);
+
+                int debug = 0;
+                // if input is small enough, setup to print output for debugging                
+                if (w < 5)
+                    debug = 1;
+                
+                gen_primes(number, debug);
                 mpz_clear(number);
             }
 

@@ -33,7 +33,6 @@ char *read_file_data (const char *filename)
 {
     FILE *file = fopen(filename, "r");
     long size;
-    char *buff;
 
     // find out total length of file contents
     fseek(file, 0L, SEEK_END);
@@ -160,8 +159,6 @@ void gen_primes (mpz_t max_number) {
  * Main program
  */
 int main (int argc, char *argv[]) {
-    char input[19];
-
     if (argc != 2) {
         printf("Usage: %s max_number\n.", argv[0]);
         printf("Supports numbers up to: %lld\n", LONG_LONG_MAX);
