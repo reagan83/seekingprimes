@@ -88,7 +88,7 @@ int is_prime (mpz_t num) {
     mpz_init(one);
     mpz_set_ui(one, 1);
 
-    // create one variable
+    // create two variable
     mpz_t two;
     mpz_init(two);
     mpz_set_ui(two, 2);
@@ -162,10 +162,11 @@ int is_prime (mpz_t num) {
 void gen_primes (mpz_t max_number, int debug) {
     mpz_t current;
     mpz_init(current);
+    mpz_set_ui(current, 1);
 
-    mpz_t temp;
-    mpz_init(temp);
-    mpz_set_ui(temp, 1);
+    mpz_t one;
+    mpz_init(one);
+    mpz_set_ui(one, 1);
 
     unsigned long long primes_found = 0;
 
@@ -176,7 +177,7 @@ void gen_primes (mpz_t max_number, int debug) {
             primes_found++;
         }
 
-        mpz_add(current, current, temp);
+        mpz_add(current, current, one);
 
         if (mpz_cmp(current, max_number) > 0) break;
     }
@@ -216,7 +217,7 @@ int main (int argc, char *argv[]) {
 
             int debug = 0;
             // if input is small enough, setup to print output for debugging                
-            if (w < 7)
+            if (w < 5)
                 debug = 1;
 
             gen_primes(number, debug);

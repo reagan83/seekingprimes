@@ -53,17 +53,6 @@ char *read_file_data (const char *filename)
 }
 
 
-unsigned long long power(unsigned long long base, unsigned long long pow) {
-    unsigned long long i = 0;
-
-    while (i <= pow) {
-        base = base * pow;
-        i++;
-    }
-
-    return base;
-}
-
 
 /**
  * NONDETERMINISTIC: Solovay-Strassen primality
@@ -98,34 +87,117 @@ mpz_t calc_legendre(mpz_t a, mpz_t p) {
 */
 
 int is_prime (mpz_t num) {
-    if (num <= 1) return 0;
-    if (num % 2 == 0) return 0; // found a divisor
+    // create max fermat tests variable & init to 18
+    mpz_t max_ss_tests;
+    mpz_init(max_ss_tests);
+    mpz_set_ui(max_ss_tests, 999);
 
-    unsigned long long k = 99999; // accuracy of the test
+    // create zero variable
+    mpz_t zero;
+    mpz_init(zero);
+    mpz_set_ui(zero, 0);
+
+    // create one variable
+    mpz_t one;
+    mpz_init(one);
+    mpz_set_ui(one, 1);
+
+    // create two variable
+    mpz_t two;
+    mpz_init(two);
+    mpz_set_ui(two, 2);
+
+    // if number is less than or equal to 1, exit
+    if (mpz_cmp(num, one) <= 0) return 0;
+
+    // if number is 2, then is prime, exit
+    if (mpz_cmp(num, two) == 0) return 1; // number is 2 and prime
+
+    // if number is num % 2 = 0, then exit
+    mpz_t rop;
+    mpz_init(rop);
+    mpz_mod(rop, num, two);
+
+    if (mpz_cmp(rop, zero) == 0) return 0; // found a divisor
+
+    // setup num - 1 variable
+    mpz_t num_minus_one;
+    mpz_init(num_minus_one);
+    mpz_sub(num_minus_one, num, one);
+
+    // initialize random state for use in fermat's algo
+    gmp_randstate_t rstate;
+    gmp_randinit_default(rstate);
+    gmp_randseed(rstate, num);
+
+    // setup counter variable
+    mpz_t counter;
+    mpz_init(counter);
+    mpz_set_ui(counter, 2);
+
+    // setup stateful loop exponent variable
+    mpz_t exponent;
+    mpz_init(exponent);
+    mpz_set_ui(exponent, 0);
+
+    // setup stateful loop results variable: resultsleft
+    mpz_t resultsleft;
+    mpz_init(resultsleft);
+
+    // setup stateful loop results variable: resultsright
+    mpz_t resultsright;
+    mpz_init(resultsright);
+
+    // setup stateful loop results for jacobi
+    mpz_t j;
+    mpz_init(j);
 
     // loop through k times to determine accuracy of test
     // if equal, number is possibly prime
-    srand(time(NULL));
-    int r = 0;
+//    gmp_printf ("=========================: num: %Zd\n", num);
+    while (1) {
+        // loop until max tests has satisfied
+        if (mpz_cmp(counter, max_ss_tests) >= 0) break;
 
-    for (unsigned long long i = 0; i < k; i++) {
-        r = rand() % num;
+        // generate random number and store in 'rop'
+        mpz_urandomm(rop, rstate, num_minus_one);
+        if (mpz_cmp(rop, zero) == 0)
+            mpz_add(rop, rop, two); // make sure we add +1 to this number in case 0 is selected.
+        if (mpz_cmp(rop, one) == 0)
+            mpz_add(rop, rop, one); // make sure we add +1 to this number in case 0 is selected.
 
-        // loop until random number beteween 2 - (n - 1) is reached
-        while (1) {
-            if (r >= 2) break;
-            if (r % 2 != 0) break; // keep searching for odd numbers only
-            r = rand() % num;
-        }
+//        gmp_printf ("-- random number: %Zd\n", rop);
 
-        int jacobi = mpz_jacobi(r, num);
+        // left side of SS test
+        mpz_divexact(exponent, num_minus_one, two);
+        mpz_powm(resultsleft, rop, exponent, num);
+//        gmp_printf ("2/ left: %Zd\n", exponent, resultsleft);
 
-        r = power(r, (num - 1)/2);
-        if ((r % num) != (jacobi % num)) { // either prime of Eular liar
-            printf("composite found: %lld %lld\n", i, num);
+        // right side of SS test
+        int jacobi = mpz_jacobi(rop, num);
+        if (jacobi == 0) {
+//            gmp_printf ("composite found: (zero jacobi) %Zd\n", num);
             return 0;
         }
+
+        mpz_set_ui(j, jacobi);
+
+        mpz_mod(resultsright, resultsright, num);
+//        gmp_printf ("3/ right: %Zd\n", resultsright);
+
+        // if left != right, then number is a composite!
+        if (mpz_cmp(resultsleft, resultsright) == 0) {
+//            gmp_printf ("composite found: (num) %d\n", mpz_cmp(resultsleft, resultsright));
+            return 0;
+        }
+
+        // number could be a prime! keep looping for accuracy
+        mpz_add(counter, counter, one);
+
+        // loop iterations larger than num
+        if (mpz_cmp(counter, num) > 0) break;
     }
+
 
     // possibly prime
     return 1;
@@ -137,17 +209,24 @@ int is_prime (mpz_t num) {
  */
 void gen_primes (mpz_t max_number) {
     mpz_t current;
-    unsigned long long primes_found;
+    mpz_init(current);
+    mpz_set_ui(current, 1);
 
-    current = 0;
+    mpz_t one;
+    mpz_init(one);
+    mpz_set_ui(one, 1);
 
-    while (current < max_number) {
+    unsigned long long primes_found = 0;
+
+    while (1) {
         if (is_prime(current) == 1) {
-            printf ("possible prime found: %lld\n", current);
+            gmp_printf ("possible prime found: %Zd\n", current);
             primes_found++;
         }
 
-        current = current + 1;
+        mpz_add(current, current, one);
+
+        if (mpz_cmp(current, max_number) > 0) break;
     }
 
     printf("finished!\n");
